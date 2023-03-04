@@ -271,13 +271,13 @@ def get_location(epoch:int) -> dict:
     lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 24
     alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
     
-    geocoder = Nominatim(user_agent='iss_tracker')
-    geoloc = geocoder.reverse((lat, lon), zoom=3, language='en')
+    geocoder = Nominatim(user_agent=__name__)
+    geoloc = geocoder.reverse((lat, lon), zoom=15, language='en')
     
-    return {'LATITUDE': lat, 'LONGITUDE': lon, "ALTITUDE":alt, 'GEO_POSITION':geoloc}
+    return {'LATIIITUDE': lat, 'LONGITUDE': lon, "ALTITUDE":alt, 'GEO_POSITION':geoloc}
 
-
-def get_location_now(epoch:int) -> dict:
+@app.route('/now', methods = ['GET'])
+def get_location_now() -> dict:
     """Get Location at Epoch
 
     Route that returns latitude, longitude, altitude, and geoposition for a given epoch.
@@ -294,21 +294,7 @@ def get_location_now(epoch:int) -> dict:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
         return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
-    epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']#list of epoch + state vector
-    MEAN_EARTH_RADIUS = 6371.07103 #km
-    x = round(float(epochs[epoch]['X']['#text']),6)
-    y = round(float(epochs[epoch]['Y']['#text']),6)
-    z = round(float(epochs[epoch]['Z']['#text']),6)
-    EPOCH = epochs[epoch]['EPOCH']#string that has time
-    hrs = float(EPOCH[9:11])
-    mins = float(EPOCH[12:14])
-    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
-    lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 24
-    alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
-
-    geocoder = Nominatim(user_agent=__name__)
-    geoloc = geocoder.reverse(lat, lon)
-    return {'Latitude': lat, 'Longitude':lon, 'Altitude':alt, 'geopos': geoloc}
+    return "Work in progress"
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
