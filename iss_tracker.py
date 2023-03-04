@@ -2,6 +2,7 @@ import requests
 import xmltodict
 import math
 from flask import Flask, request
+from geopy.geocoders import Nominatim
 
 app = Flask(__name__)
 
@@ -139,8 +140,12 @@ def help() -> str:
     """Display helpful information
 
     Display information regarding usage of routes and queries
+
+    Args: 
+      NONE
     
-    Returns a string that gives a brief description of all available routes plus their methods.
+    Returns:
+      String that gives a brief description of all available routes plus their methods.
 
     """
     message = "usage: curl 127.0.0.1:5000[Options]\n\n     Options: \n       [/]                             Return entire data set \n       [/epochs]                       Return list of all Epochs in the data set \n       [/epochs?limit=int&offset=int]  Return modified list of Epochs given query parameters. Offswt parameter makes it so that it returns the data after the inputted value. The limit parameter limits the number of epochs are returned. \n       [/epochs/<epoch>]               Return state vectors for a specific Epoch from the data set \n       [/epochs/<epoch>/speed]         Return instantaneous speed for a specific Epoch in the data set\n       [/help]                         Return help text (as a string) that briefly describes each route \n       [/delete-data]                  Delete all data from the dictionary object. In the terminal curl should be followed by -X DELETE \n       [/post-data]                    Reload the dictionary object with data from the web. In the terminal curl should be followed by -X POST \n **** Note if running multiple queries the use of single quotes will be necessary (' '). \n"
@@ -152,7 +157,11 @@ def delete_data() -> str:
 
     Deletes data contained within the global variable data
 
-    Returns a string explaining that the data was deleted
+    Args: 
+      NONE
+
+    Returns:
+      String explaining that the data was deleted
 
     """
     data.clear()
@@ -163,13 +172,144 @@ def post_data() -> str:
 
     Command to load in data. Helpful for after having deleted the data.
 
-    Returns a string explaining that the data has been loaded.
+    Args: 
+      NONE
+
+    Returns:
+      String explaining that the data has been loaded.
 
     """
     global data
     data = get_data()
     return "You have loaded in data. \n"
 # the next statement should usually appear at the bottom of a flask app
+@app.route('/comment', methods = ['GET'])
+def get_comment() -> list:
+    """Get Comment Data
+
+    Returns the data under the key "COMMENT" from the ISS data.
+
+    Args:
+      NONE
+
+    Returns:
+      List of comments
+
+    """
+    try:
+        commentList = data['ndm']['oem']['body']['segment']['data']['COMMENT']
+    except KeyError:
+        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+    
+    return data['ndm']['oem']['body']['segment']['data']['COMMENT']
+
+@app.route('/header', methods = ['GET'])
+def get_header() -> dict:
+    """Get Header Data
+
+    Route that returns the ‘header’ dictionary object from the ISS data
+
+    Args:
+      NONE
+
+    Returns:  
+      Dictionary with creation date and originator
+
+    """
+    try:
+        commentList = data['ndm']['oem']['header']
+    except KeyError:
+        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+    return data['ndm']['oem']['header']
+
+@app.route('/metadata', methods = ['GET'])
+def get_metadata() -> dict:
+    """Get Metadata Data
+
+    Route that returns the ‘header’ dictionary object from the ISS data
+
+    Args:
+      NONE
+
+    Returns:
+      Dictionary with creation date and originator
+
+    """
+    try:
+        metaDict = data['ndm']['oem']['body']['segment']['metadata']
+    except KeyError:
+        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+    return data['ndm']['oem']['body']['segment']['metadata']
+
+@app.route('/epochs/<int:epoch>/location', methods = ['GET'])
+def get_location(epoch:int) -> dict:
+    """Get Location at Epoch
+
+    Route that returns latitude, longitude, altitude, and geoposition for a given epoch.
+
+    Args:
+      Takes in an integer that is the ith epoch in the list
+
+    Returns:
+      Dictionary with latitude, longitude, altitude, and geoposition,
+
+    """
+    
+    try:
+        epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
+    except KeyError:
+        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+    epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']#list of epoch + state vector
+    MEAN_EARTH_RADIUS = 6371.07103 #km
+    x = float(epochs[epoch]['X']['#text'])
+    y = float(epochs[epoch]['Y']['#text'])
+    z = float(epochs[epoch]['Z']['#text'])
+    EPOCH = epochs[epoch]['EPOCH']#string that has time 
+    hrs = float(EPOCH[9:11])
+    mins = float(EPOCH[12:14])
+    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+    lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 24
+    alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
+    
+    geocoder = Nominatim(user_agent='iss_tracker')
+    geoloc = geocoder.reverse((lat, lon), zoom=3, language='en')
+    
+    return {'LATITUDE': lat, 'LONGITUDE': lon, "ALTITUDE":alt, 'GEO_POSITION':geoloc}
+
+
+def get_location_now(epoch:int) -> dict:
+    """Get Location at Epoch
+
+    Route that returns latitude, longitude, altitude, and geoposition for a given epoch.
+
+    Args:
+      Takes in an integer that is the ith epoch in the list
+
+    Returns:
+      Dictionary with latitude, longitude, altitude, and geoposition,
+
+    """
+
+    try:
+        epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
+    except KeyError:
+        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+    epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']#list of epoch + state vector
+    MEAN_EARTH_RADIUS = 6371.07103 #km
+    x = round(float(epochs[epoch]['X']['#text']),6)
+    y = round(float(epochs[epoch]['Y']['#text']),6)
+    z = round(float(epochs[epoch]['Z']['#text']),6)
+    EPOCH = epochs[epoch]['EPOCH']#string that has time
+    hrs = float(EPOCH[9:11])
+    mins = float(EPOCH[12:14])
+    lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+    lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 24
+    alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
+
+    geocoder = Nominatim(user_agent=__name__)
+    geoloc = geocoder.reverse(lat, lon)
+    return {'Latitude': lat, 'Longitude':lon, 'Altitude':alt, 'geopos': geoloc}
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
 
