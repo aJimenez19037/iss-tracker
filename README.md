@@ -223,7 +223,7 @@ Returns data found in within the comment key in the ISS data. You are given info
 ### [/header]
 Returns information found in the header key of the ISS data. Results shw creation date of the data and that it originated from the Johnson Space Center
 ```console
-$ curl localhost:5000/header
+[user]:$ curl localhost:5000/header
 {
   "CREATION_DATE": "2023-067T21:02:49.080Z",
   "ORIGINATOR": "JSC"
@@ -232,7 +232,7 @@ $ curl localhost:5000/header
 ### [/metadata]
 Returns information found in the metadata key of the ISS data. 
 ```console
-$ curl localhost:5000/metadata
+[user]:$ curl localhost:5000/metadata
 {
   "CENTER_NAME": "EARTH",
   "OBJECT_ID": "1998-067-A",
