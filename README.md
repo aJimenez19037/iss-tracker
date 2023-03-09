@@ -10,7 +10,7 @@ The purpose of this project is to make working with and looking at the Internati
 2. iss_tracker.py:        Flask application that creates server-client model.
 3. docker-compose.yml:    Compose file to automate the deployment of flask application.
 
-## Ways to Use the Script
+## Ways to Build Container
 
 ### Downloading from source
 Downloading from source makes it easier to edit and build your own container. Clone repository into your device:
