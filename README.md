@@ -15,7 +15,7 @@ The purpose of this project is to make working with and looking at the Internati
 ### Downloading from source
 Downloading from source makes it easier to edit and build your own container. Clone repository into your device:
 ```console
-[user]:$git clone [<link from github>](https://github.com/aJimenez19037/iss-tracker)
+[user]:$git clone [clone link from github]
 ```
 Build containerized app:
 ```console
