@@ -4,7 +4,7 @@
 
 The purpose of this project is to make working with and looking at the International Space Station data much easier. The project uses recent and publicly available data that allows the user to be able to see the ISS position, velocity, location, and more. 
 
-##Files in Repository
+## Files in Repository
 
 1. Dockerfile:            Dockerfile to containerize iss_tracker.py script
 2. iss_tracker.py:        Flask application that creates server-client model.
