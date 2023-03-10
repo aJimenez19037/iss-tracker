@@ -84,7 +84,7 @@ usage: curl localhost:5000[Options]
 ### [/]
 The first route ("/") will result in the entire dataset being returned. You will see all of the information wihtin the XML file as a dictionary. As you can see there is metadata as well as other data that you can sift through. The end of your output will look like: 
 ```console
-[user]:$curl 127.0.0.1:5000/
+[user]:$curl localhost:5000/
 ...
 ...
    },
@@ -154,7 +154,7 @@ $curl 'localhost:5000/epochs?start=10&limit=5'
 ### [/epochs/<string:epoch>]  
 Return information from the epoch requested based on epoch requested within the route. Within the information you will find its x,y,z positions and x,y,z velocity. The units are km and km/s.
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z
 {
   "X": "5503.7762252426101",
   "X_DOT": "-3.1022300368795301",
@@ -166,7 +166,7 @@ Return information from the epoch requested based on epoch requested within the 
 ```
 The fourth route (/epochs/<string:epoch>/speed) will return the velocity of the epoch requested in the route as a dictionary. The result will be the scalar value of the velocity. The result will look like:
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z/speed
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z/speed
 {
   "Velocity": 7.6603442162552815,
   "units": "km/s"
@@ -175,19 +175,19 @@ The fourth route (/epochs/<string:epoch>/speed) will return the velocity of the 
 ### [/delete-data]
 Deletes all of the ISS data gethered through the use of the 'requests' library.
 ```console
-[user]:$curl -X DELETE 127.0.0.1:5000/delete-data
+[user]:$curl -X DELETE localhost:5000/delete-data
 You have deleted data that was loaded in.
 ```
 ### [/post-data]
 If there is no data, you are able to load in the latest data using this route.
 ```console
-[user]:$curl -X POST 127.0.0.1:5000/post-data
+[user]:$curl -X POST localhost:5000/post-data
 You have loaded in data.
 ```
 ### [/comment]
 Returns data found in within the comment key in the ISS data. You are given information about the ISS itself, events, and more. 
 ```console
-[user]$curl 127.0.0.1:5000/comment
+[user]$curl localhost:5000/comment
 [
   "Units are in kg and m^2",
   "MASS=473291.00",
@@ -247,7 +247,7 @@ Returns information found in the metadata key of the ISS data.
 ### [/epoch/str:epoch/location]
 Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. However, if it is over land it will output the country it was over at the time. 
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z/location
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z/location
 {
   "ALTITUDE": 426.42233125654093,
   "GEO_POSITION": "NONE: ISS is likely over the ocean",
@@ -258,7 +258,7 @@ Gives information about the location of the ISS at the specific epoch. Altitude 
 ### [/now]
 Return the location information of the closest epoch to our actual time. There is a key that mentions how much time has spanned since the closest epoch. It also returns information on its current velocity. 
 ```console
-[user]$:curl 127.0.0.1:5000/now
+[user]$:curl localhost:5000/now
 {
   "closest_epoch": "2023-068T09:24:17.828Z",
   "location": {
