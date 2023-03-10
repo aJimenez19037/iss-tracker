@@ -174,6 +174,10 @@ The fourth route (/epochs/<string:epoch>/speed) will return the velocity of the 
   "units": "km/s"
 }
 ```
+Velocity is calculated using the equation below:
+```math
+Velocity = \sqrt{\dot{x}^2+\dot{y}^2+\dot{z}^2}
+```
 ### [/delete-data]
 Deletes all of the ISS data gethered through the use of the 'requests' library.
 ```console
