@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The purpose of this project is to make working with and looking at the International Space Station data much easier. The project uses recent and publicly available data that allows the user to be able to see the ISS position, velocity, location, and more. 
+The purpose of this project is to make working with and looking at the International Space Station data ephemeris much easier. Ephemeris' data is updated every 3 days and is publicly available data that allows the user to be able to see the ISS position, velocity, location, and more. This data is used and maintained by ISS Trajectory Operations and Planning Officer. This data is vital for maintaining communications links, planning visiting vehicle encounters, and maintaining the ISS away from possible collisions. This project makes the data easier to read and allows users to build upon the ISS tracker for their own personal projects. 
 
 ## Files in Repository
 
@@ -11,6 +11,8 @@ The purpose of this project is to make working with and looking at the Internati
 3. docker-compose.yml:    Compose file to automate the deployment of flask application.
 
 ## Ways to Build Container
+
+For both methods of building the container, you must clone this repository onto your device. Furthermore, you need to build the container within the repository with the "Dockerfile" and "iss_tracker.py".
 
 ### Downloading from source
 Downloading from source makes it easier to edit and build your own container. Clone repository into your device:
@@ -35,11 +37,11 @@ Through the use of the docker-compose.yml file we are able to run the flask app 
 ```console
 [user]$docker-compose up 
 ```
-If you have downloaded the application from source then you will need to edit the docker-compose file image line to one that matches your container. 
+If you have downloaded the application from source and created your own image then you will need to edit the docker-compose file image line to one that matches your image. 
 
 ## ISS Data 
 
-The public [ISS Data](https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml) is public and can be downloaded as a txt or xml file. Within the python script the 'request' library is used to extract the data from the website. 
+The public [ISS Data](https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml) can be downloaded as a txt or xml file. Within the python script the 'request' library is used to extract the data from the website. 
 ```console
 [user]:$RUN pip3 install requests==2.22.0
 ```
