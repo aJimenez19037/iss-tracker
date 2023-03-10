@@ -257,6 +257,13 @@ Gives information about the location of the ISS at the specific epoch. Altitude 
   "LONGITUDE": 67.77071661260686
 }
 ```
+Latitude, longitude, and altitude are calculated with equations below:
+```Python
+#MEAN_EARTH_RADIUS = 6371.07103 km
+lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 32
+alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
+```
 ### [/now]
 Return the location information of the closest epoch to our actual time. There is a key that mentions how much time has spanned since the closest epoch. It also returns information on its current velocity. 
 ```console
