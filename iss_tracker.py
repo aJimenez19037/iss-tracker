@@ -82,7 +82,7 @@ def get_epoch_list() -> list:
     try:
         5>=int(offset)
     except ValueError:
-        return "Invalid offset parameter"
+        return "Invalid offset parameter\n"
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
@@ -135,7 +135,7 @@ def get_state_vector(epoch:str) -> dict:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
         
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"
     
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     exist = False
@@ -169,7 +169,7 @@ def get_instantaneous_speed(epoch:str) -> dict:
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
-        return "Data is empty. Try $curl -X POST localhost::5000/post-data"
+        return "Data is empty. Try $curl -X POST localhost::5000/post-data\n"
     
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     exist = False
@@ -250,7 +250,7 @@ def get_comment() -> list:
     try:
         commentList = data['ndm']['oem']['body']['segment']['data']['COMMENT']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"
     
     return data['ndm']['oem']['body']['segment']['data']['COMMENT']
 
@@ -273,7 +273,7 @@ def get_header() -> dict:
     try:
         commentList = data['ndm']['oem']['header']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"
     return data['ndm']['oem']['header']
 
 @app.route('/metadata', methods = ['GET'])
@@ -300,7 +300,7 @@ def get_metadata() -> dict:
     try:
         metaDict = data['ndm']['oem']['body']['segment']['metadata']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data' \n"
     return data['ndm']['oem']['body']['segment']['metadata']
 
 @app.route('/epochs/<string:epoch>/location', methods = ['GET'])
@@ -325,7 +325,7 @@ def get_location(epoch:str) -> dict:
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']#list of epoch + state vector
     exist = False
     for x in epochs:
@@ -348,7 +348,7 @@ def get_location(epoch:str) -> dict:
     try:
         location =  geocoder.reverse((lat, lon), zoom=5, language='en')
     except Error as e:
-        return f'Geopy returned an error - {e}'
+        return f'Geopy returned an error - {e}\n'
     
     geoloc = geocoder.reverse((lat, lon), zoom=5, language='en')
     try:
@@ -375,7 +375,7 @@ def get_location_now() -> dict:
     try:
         epochs = data['ndm']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"    
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"    
     time_now = time.time()
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     closest_epoch = 0
