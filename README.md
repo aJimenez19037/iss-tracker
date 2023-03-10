@@ -35,6 +35,7 @@ Through the use of the docker-compose.yml file we are able to run the flask app 
 ```console
 [user]$docker-compose up 
 ```
+If you have downloaded the application from source then you will need to edit the docker-compose file image line to one that matches your container. 
 
 ## ISS Data 
 
