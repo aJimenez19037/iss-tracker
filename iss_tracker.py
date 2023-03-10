@@ -15,13 +15,13 @@ data = xmltodict.parse(response.text)
 def get_data() -> dict:
     """Gather data from ISS website
 
-    Gather XML file from the ISS website and converts it into a dicitionary
+    Gather XML file from the ISS website and converts it into a dicitionary.
 
     Args:
        None
 
     Returns:
-        Dictionary with entire dataset.
+        Dictionary: Entire data set.
     """    
     global data
     url = 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'
@@ -31,13 +31,13 @@ def get_data() -> dict:
 def find_index(epoch:str) -> int:
     """Find Epoch Index
     
-    Based on the inputted epoch by the user, return the index of that specific epoch
+    Based on the inputted epoch by the user, return the index of that specific epoch.
 
     Args: 
-      String with the desired epoch
+      String: Epoch of interest.
 
     Returns
-      Integer that is the index of the eopch that the user is looking for. 
+      Integer: Index of the eopch that the user is looking for. 
     """
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     
@@ -55,7 +55,7 @@ def get_data_set() -> dict:
        None
 
     Returns:
-        Dictionary with entire dataset.
+        Dictionary: Entire ephimeris data set.
     """
     return data
     
@@ -64,13 +64,13 @@ def get_data_set() -> dict:
 def get_epoch_list() -> list:
     """Return list of all Epochs in the data set
 
-    Takes in request using flask and returns a list of all the epochs in the dataset.
+    Takes in request using flask and returns a list of all the epochs in the data set.
 
     Args:
        None
 
     Returns:
-        List of dictionaries with all the epochs and their index value.
+        List: List of dictionaries with all the epochs and their index value.
     """
     epochs_list = []
     offset = request.args.get('offset',0)
@@ -80,10 +80,14 @@ def get_epoch_list() -> list:
         except ValueError:
             return "Invalid offset parameter; offset must be an integer.\n"
     try:
+        5>=int(offset)
+    except ValueError:
+        return "Invalid offset parameter"
+    try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
         #return epochs_list
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'\n"
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     limit = request.args.get('limit',len(epochs))
     if limit:
@@ -91,8 +95,14 @@ def get_epoch_list() -> list:
             limit = int(limit)
         except ValueError:
             return "Invalid limit parameter; limit must be an integer.\n"
+    try:
+        if len(epochs_list) == int(limit):
+            i=5
+    except ValueError:
+        return "Invalid limit parameter\n"
     counter = 0;
     for d in range(len(epochs)):
+        
         if (d >= int(offset)):
             epochs_list.append({epochs[d]['EPOCH']:d})
         if (len(epochs_list) == int(limit)):
@@ -101,26 +111,39 @@ def get_epoch_list() -> list:
 
 
 @app.route('/epochs/<string:epoch>', methods = ['GET'])#State vectors for a specific Epoch from the data set
-def get_each_vectors(epoch:str) -> dict:
+def get_state_vector(epoch:str) -> dict:
     """Return specific epoch
 
     Takes in request using flask and returns specific epoch in the list.
 
     Args:
-       Takes in an integer that is the ith epoch in the list
+       String: Epoch of interest/
 
     Returns:
-        Dictionary with all of the data related to that epoch.
+        Dictionary:  Data related to that epoch. For example:
+        
+        {"X": "5503.7762252426101",
+         "X_DOT": "-3.1022300368795301",
+         "Y": "3965.17406451955",
+         "Y_DOT": "3.6253043212810101",
+         "Z": "437.90169769306402",
+         "Z_DOT": "5.9928466431153904"}
     """
     
     
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
-        #return {}
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
     
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
+    exist = False
+    for x in epochs:
+        if x['EPOCH'] == epoch:
+            exist = True
+    if exist == False:
+        return "Epoch does not exist\n"
     i = find_index(epoch)
     return {"X": epochs[i]['X']['#text'],
             "Y": epochs[i]['Y']['#text'],
@@ -135,17 +158,26 @@ def get_instantaneous_speed(epoch:str) -> dict:
     Based on requested epoch number calculate and return its velocity.
 
     Args:
-       Takes in an integer that is the ith epoch in the list
+       String: Epoch of interest.
 
     Returns:
-        Dictionary containing the velocity of the epoch
+        Dictionary: Containing velocity of the epoch and its units. For example:
+
+        {"Velocity": 7.6603442162552815,
+         "units": "km/s"}
     """
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
-        return "Data is empty. Try $curl -X POST 127.0.0.1::5000/post-data"
+        return "Data is empty. Try $curl -X POST localhost::5000/post-data"
     
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
+    exist = False
+    for x in epochs:
+        if x['EPOCH'] == epoch:
+            exist = True
+    if exist == False:
+        return "Epoch does not exist\n"
     i = find_index(epoch)
     x_velocity = float(epochs[i]['X_DOT']['#text'])
     y_velocity = float(epochs[i]['Y_DOT']['#text'])
@@ -157,13 +189,13 @@ def get_instantaneous_speed(epoch:str) -> dict:
 def help() -> str:
     """Display helpful information
 
-    Display information regarding usage of routes and queries
+    Display information regarding usage of routes and queries.
 
     Args: 
       NONE
     
     Returns:
-      String that gives a brief description of all available routes plus their methods.
+      String: Brief description of all available routes plus their methods.
 
     """
     message = "usage: curl localhost:5000[Options]\n\n     Options: \n       [/]                             Return entire data set \n       [/epochs]                       Return list of all Epochs in the data set \n       [/epochs?limit=int&offset=int]  Return modified list of Epochs given query parameters. \n                                       Offset parameter: returns the data after the inputted value. \n                                       Limit parameter: limits number of epochs returned.\n                                       **** Note: When using multiple queries use of single quotes will be necessary (' '). \n       [/epochs/<epoch>]               Return state vectors for a specific Epoch from the data set \n       [/epochs/<epoch>/speed]         Return instantaneous speed for a specific Epoch in the data set\n       [/help]                         Return help text (as a string) that briefly describes each route \n       [/delete-data]                  Delete all data from the dictionary object. In the terminal curl should be followed by -X DELETE \n       [/post-data]                    Reload the dictionary object with data from the web. In the terminal curl should be followed by -X POST \n       [/comment]                      Return ‘comment’ list obejct from ISS data \n       [/header]                       Return ‘header’ dict object from ISS data\n       [/metadata]                     Return ‘metadata’ dict object from ISS data\n       [/epochs/<epoch>/location]      Return latitude, longitude, altitude, and geoposition for given Epoch\n       [/now]                          Return latitude, longitude, altidue, and geoposition for Epoch that is nearest in time \n"
@@ -179,11 +211,12 @@ def delete_data() -> str:
       NONE
 
     Returns:
-      String explaining that the data was deleted
+      String: Explaining that data was deleted.
 
     """
     data.clear()
-    return "You have deleted data that was loaded in.\n"
+    return "Deleted data.\n"
+
 @app.route('/post-data', methods = ['POST'])
 def post_data() -> str:
     """Load in data
@@ -194,13 +227,13 @@ def post_data() -> str:
       NONE
 
     Returns:
-      String explaining that the data has been loaded.
+      String: explaining that data has been loaded in.
 
     """
     global data
     data = get_data()
     return "You have loaded in data. \n"
-# the next statement should usually appear at the bottom of a flask app
+
 @app.route('/comment', methods = ['GET'])
 def get_comment() -> list:
     """Get Comment Data
@@ -211,13 +244,13 @@ def get_comment() -> list:
       NONE
 
     Returns:
-      List of comments
+      List: Data in comment key.
 
     """
     try:
         commentList = data['ndm']['oem']['body']['segment']['data']['COMMENT']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
     
     return data['ndm']['oem']['body']['segment']['data']['COMMENT']
 
@@ -225,38 +258,49 @@ def get_comment() -> list:
 def get_header() -> dict:
     """Get Header Data
 
-    Route that returns the ‘header’ dictionary object from the ISS data
+    Route that returns the ‘header’ dictionary object from the ISS data.
 
     Args:
       NONE
 
     Returns:  
-      Dictionary with creation date and originator
+      Dictionary: Creation date and originator. For example:
+
+      {"CREATION_DATE": "2023-067T21:02:49.080Z",
+       "ORIGINATOR": "JSC"}
 
     """
     try:
         commentList = data['ndm']['oem']['header']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
     return data['ndm']['oem']['header']
 
 @app.route('/metadata', methods = ['GET'])
 def get_metadata() -> dict:
     """Get Metadata Data
 
-    Route that returns the ‘header’ dictionary object from the ISS data
+    Route that returns the ‘metadata’ dictionary object from the ISS data.
 
     Args:
       NONE
 
     Returns:
-      Dictionary with creation date and originator
+      Dictionary: Informaton from 'metadata' key. For example:
+
+      {"CENTER_NAME": "EARTH",
+       "OBJECT_ID": "1998-067-A",
+       "OBJECT_NAME": "ISS",
+       "REF_FRAME": "EME2000",
+       "START_TIME": "2023-067T12:00:00.000Z",
+       "STOP_TIME": "2023-082T12:00:00.000Z",
+       "TIME_SYSTEM": "UTC"}
 
     """
     try:
         metaDict = data['ndm']['oem']['body']['segment']['metadata']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
     return data['ndm']['oem']['body']['segment']['metadata']
 
 @app.route('/epochs/<string:epoch>/location', methods = ['GET'])
@@ -266,18 +310,29 @@ def get_location(epoch:str) -> dict:
     Route that returns latitude, longitude, altitude, and geoposition for a given epoch.
 
     Args:
-      Takes in an integer that is the ith epoch in the list
+      String: Epoch of interest.
 
     Returns:
-      Dictionary with latitude, longitude, altitude, and geoposition,
+      Dictionary:  Contains {latitude, longitude, altitude, and geoposition}. For example:
+
+      {"ALTITUDE": 426.42233125654093,
+       "GEO_POSITION": "NONE: ISS is likely over the ocean",
+       "LATITUDE": 3.693612400678767,
+       "LONGITUDE": 67.77071661260686}
 
     """
     
     try:
         epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']#list of epoch + state vector
+    exist = False
+    for x in epochs:
+        if x['EPOCH'] == epoch:
+            exist = True
+    if exist == False:
+        return "Epoch does not exist\n"
     i = find_index(epoch)
     MEAN_EARTH_RADIUS = 6371.07103 #km
     x = float(epochs[i]['X']['#text'])
@@ -290,6 +345,11 @@ def get_location(epoch:str) -> dict:
     lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 32
     alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
     geocoder = Nominatim(user_agent=__name__)
+    try:
+        location =  geocoder.reverse((lat, lon), zoom=5, language='en')
+    except Error as e:
+        return f'Geopy returned an error - {e}'
+    
     geoloc = geocoder.reverse((lat, lon), zoom=5, language='en')
     try:
         {'LATITUDE': lat, 'LONGITUDE': lon, 'ALTITUDE':alt, 'GEO_POSITION':geoloc.raw['display_name']}
@@ -302,20 +362,20 @@ def get_location(epoch:str) -> dict:
 def get_location_now() -> dict:
     """Get Location at Epoch
 
-    Route that returns latitude, longitude, altitude, and geoposition for a given epoch.
+    Route that returns information on the epoch closest to real time.
 
     Args:
-      Takes in an integer that is the ith epoch in the list
+      NONE
 
     Returns:
-      Dictionary with latitude, longitude, altitude, and geoposition,
+      Dictionary: Contains keys latitude, longitude, altitude, geoposition, velocity, seconds away from current time, and the epoch itself.
 
     """
 
     try:
         epochs = data['ndm']
     except KeyError:
-        return "Data is empty. Try loading the data using $curl url -X POST '127.0.0.1:5000/post-data'"    
+        return "Data is empty. Try loading the data using $curl url -X POST 'localhost:5000/post-data'"    
     time_now = time.time()
     epochs = data['ndm']['oem']['body']['segment']['data']['stateVector']
     closest_epoch = 0
