@@ -247,7 +247,7 @@ Returns information found in the metadata key of the ISS data.
 }
 ```
 ### [/epoch/str:epoch/location]
-Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. However, if it is over land it will output the country it was over at the time. 
+Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. 'Geopy' library is used to find the geoposition given latitude and longitude. However, if it is over land it will output the country it was over at the time. 
 ```console
 [user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z/location
 {
@@ -257,7 +257,7 @@ Gives information about the location of the ISS at the specific epoch. Altitude 
   "LONGITUDE": 67.77071661260686
 }
 ```
-Latitude, longitude, and altitude are calculated with equations below:
+Latitude, longitude, and altitude are calculated with equations below. hrs, mins are gathered based on the epoch:
 ```Python
 #MEAN_EARTH_RADIUS = 6371.07103 km
 lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
