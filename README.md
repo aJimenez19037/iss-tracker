@@ -244,7 +244,7 @@ Returns information found in the metadata key of the ISS data.
   "TIME_SYSTEM": "UTC"
 }
 ```
-### [/epochs/<epoch>/location]
+### [/epoch/str:epoch/location]
 Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. However, if it is over land it will output the country it was over at the time. 
 ```console
 [user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z/location
