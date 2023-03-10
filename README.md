@@ -2,20 +2,22 @@
 
 ## Purpose
 
-The purpose of this project is to make working with and looking at the International Space Station data much easier. The project uses recent and publicly available data that allows the user to be able to see the ISS position, velocity, location, and more. 
+The purpose of this project is to make working with and looking at the International Space Station data ephemeris much easier. Ephemeris' data is updated every 3 days and is publicly available data that allows the user to be able to see the ISS position, velocity, location, and more. This data is used and maintained by ISS Trajectory Operations and Planning Officer. This data is vital for maintaining communications links, planning visiting vehicle encounters, and maintaining the ISS away from possible collisions. This project makes the data easier to read and allows users to build upon the ISS tracker for their own personal projects. 
 
-##Files in Repository
+## Files in Repository
 
 1. Dockerfile:            Dockerfile to containerize iss_tracker.py script
 2. iss_tracker.py:        Flask application that creates server-client model.
 3. docker-compose.yml:    Compose file to automate the deployment of flask application.
 
-## Ways to Use the Script
+## Ways to Build Container
+
+For both methods of building the container, you must clone this repository onto your device. Furthermore, you need to build the container within the repository with the "Dockerfile" and "iss_tracker.py".
 
 ### Downloading from source
 Downloading from source makes it easier to edit and build your own container. Clone repository into your device:
 ```console
-[user]:$git clone [<link from github>](https://github.com/aJimenez19037/iss-tracker)
+[user]:$git clone [clone link from github]
 ```
 Build containerized app:
 ```console
@@ -35,10 +37,11 @@ Through the use of the docker-compose.yml file we are able to run the flask app 
 ```console
 [user]$docker-compose up 
 ```
+If you have downloaded the application from source and created your own image then you will need to edit the docker-compose file image line to one that matches your image. 
 
 ## ISS Data 
 
-The public [ISS Data](https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml) is public and can be downloaded as a txt or xml file. Within the python script the 'request' library is used to extract the data from the website. 
+The public [ISS Data](https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml) can be downloaded as a txt or xml file. Within the python script the 'request' library is used to extract the data from the website. 
 ```console
 [user]:$RUN pip3 install requests==2.22.0
 ```
@@ -83,7 +86,7 @@ usage: curl localhost:5000[Options]
 ### [/]
 The first route ("/") will result in the entire dataset being returned. You will see all of the information wihtin the XML file as a dictionary. As you can see there is metadata as well as other data that you can sift through. The end of your output will look like: 
 ```console
-[user]:$curl 127.0.0.1:5000/
+[user]:$curl localhost:5000/
 ...
 ...
    },
@@ -153,7 +156,7 @@ $curl 'localhost:5000/epochs?start=10&limit=5'
 ### [/epochs/<string:epoch>]  
 Return information from the epoch requested based on epoch requested within the route. Within the information you will find its x,y,z positions and x,y,z velocity. The units are km and km/s.
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z
 {
   "X": "5503.7762252426101",
   "X_DOT": "-3.1022300368795301",
@@ -165,28 +168,32 @@ Return information from the epoch requested based on epoch requested within the 
 ```
 The fourth route (/epochs/<string:epoch>/speed) will return the velocity of the epoch requested in the route as a dictionary. The result will be the scalar value of the velocity. The result will look like:
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z/speed
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z/speed
 {
   "Velocity": 7.6603442162552815,
   "units": "km/s"
 }
 ```
+Velocity is calculated using the equation below:
+```math
+Velocity = \sqrt{\dot{x}^2+\dot{y}^2+\dot{z}^2}
+```
 ### [/delete-data]
 Deletes all of the ISS data gethered through the use of the 'requests' library.
 ```console
-[user]:$curl -X DELETE 127.0.0.1:5000/delete-data
+[user]:$curl -X DELETE localhost:5000/delete-data
 You have deleted data that was loaded in.
 ```
 ### [/post-data]
 If there is no data, you are able to load in the latest data using this route.
 ```console
-[user]:$curl -X POST 127.0.0.1:5000/post-data
+[user]:$curl -X POST localhost:5000/post-data
 You have loaded in data.
 ```
 ### [/comment]
 Returns data found in within the comment key in the ISS data. You are given information about the ISS itself, events, and more. 
 ```console
-[user]$curl 127.0.0.1:5000/comment
+[user]$curl localhost:5000/comment
 [
   "Units are in kg and m^2",
   "MASS=473291.00",
@@ -223,7 +230,7 @@ Returns data found in within the comment key in the ISS data. You are given info
 ### [/header]
 Returns information found in the header key of the ISS data. Results shw creation date of the data and that it originated from the Johnson Space Center
 ```console
-$ curl localhost:5000/header
+[user]:$ curl localhost:5000/header
 {
   "CREATION_DATE": "2023-067T21:02:49.080Z",
   "ORIGINATOR": "JSC"
@@ -232,7 +239,7 @@ $ curl localhost:5000/header
 ### [/metadata]
 Returns information found in the metadata key of the ISS data. 
 ```console
-$ curl localhost:5000/metadata
+[user]:$ curl localhost:5000/metadata
 {
   "CENTER_NAME": "EARTH",
   "OBJECT_ID": "1998-067-A",
@@ -243,10 +250,10 @@ $ curl localhost:5000/metadata
   "TIME_SYSTEM": "UTC"
 }
 ```
-### [/epochs/<epoch>/location]
-Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. However, if it is over land it will output the country it was over at the time. 
+### [/epoch/str:epoch/location]
+Gives information about the location of the ISS at the specific epoch. Altitude units are km. When the ISS is over the ocean geopy does not return a geoposition. 'Geopy' library is used to find the geoposition given latitude and longitude. However, if it is over land it will output the country it was over at the time. 
 ```console
-[user]:$ curl 127.0.0.1:5000/epochs/2023-082T12:00:00.000Z/location
+[user]:$ curl localhost:5000/epochs/2023-082T12:00:00.000Z/location
 {
   "ALTITUDE": 426.42233125654093,
   "GEO_POSITION": "NONE: ISS is likely over the ocean",
@@ -254,10 +261,17 @@ Gives information about the location of the ISS at the specific epoch. Altitude 
   "LONGITUDE": 67.77071661260686
 }
 ```
+Latitude, longitude, and altitude are calculated with equations below. hrs, mins are gathered based on the epoch:
+```Python
+#MEAN_EARTH_RADIUS = 6371.07103 km
+lat = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2)))
+lon = math.degrees(math.atan2(y, x)) - ((hrs-12)+(mins/60))*(360/24) + 32
+alt = math.sqrt(x**2 + y**2 + z**2) - MEAN_EARTH_RADIUS
+```
 ### [/now]
 Return the location information of the closest epoch to our actual time. There is a key that mentions how much time has spanned since the closest epoch. It also returns information on its current velocity. 
 ```console
-[user]$:curl 127.0.0.1:5000/now
+[user]$:curl localhost:5000/now
 {
   "closest_epoch": "2023-068T09:24:17.828Z",
   "location": {
